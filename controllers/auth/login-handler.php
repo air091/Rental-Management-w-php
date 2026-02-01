@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once "../config/database.php";
+require_once "../../config/database.php";
 
 $success = $_SESSION["success"] ?? "";
 $error = $_SESSION["error"] ?? "";

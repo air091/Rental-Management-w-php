@@ -1,4 +1,4 @@
-
+<?php require_once("../../controllers/auth/login-handler.php") ?>
 
 <!doctype html>
 <html lang="en">
@@ -17,7 +17,6 @@
         </h1>
         <form
           method="POST"
-          action="../../phps/auth/loginForm.php"
           class="grid gap-y-1"
         >
 
