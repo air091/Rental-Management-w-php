@@ -1,0 +1,11 @@
+:root {
+  /* Brand colors */
+  /* Status colors */
+  /* Neutrals */
+  --bg: #f2f0ef;
+  --text: #333333;
+}
+
+.text-color {
+  color: var(--text);
+}
