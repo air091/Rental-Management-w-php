@@ -1,0 +1,25 @@
+:root {
+  /* BRAND */
+  --color-primary: #1a3263;
+  --color-secondary: #547792;
+  --color-accent: #fab95b;
+
+  /* STATUS */
+  --color-success: "";
+  --color-warning: "";
+  --color-danger: "";
+  --color-info: "";
+
+  /* NEUTRALS */
+  --color-text: #333333;
+  --color-bg: #f4f4f4;
+}
+
+body {
+  background-color: var(--white);
+  color: var(--black);
+}
+
+input[type="submit"] {
+  background-color: var(--color-accent);
+}
