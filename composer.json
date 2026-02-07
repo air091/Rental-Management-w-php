@@ -1,0 +1,17 @@
+{
+    "name": "acesp/rental-management",
+    "autoload": {
+        "psr-4": {
+            "Acesp\\RentalManagement\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Ace",
+            "email": "acesparkle243@gmail.com"
+        }
+    ],
+    "require": {
+        "mongodb/mongodb": "^2.1"
+    }
+}
