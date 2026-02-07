@@ -7,21 +7,23 @@ use MongoDB\BSON\UTCDateTime;
 session_start();
 
 // STATUS
-$error = $_SESSION["error"] ?? "";
+$errors = [];
 unset($_SESSION["error"]);
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $database = MongoDBConnection::getDB();
   $usersCollection = $database->users;
 
-
   // CREDENTIALS
   $email = (string) $_REQUEST["email"] ?? "";
   $password = (string) $_REQUEST["password"] ?? "";
 
-  if (empty($email) || empty($password)) {
-    $_SESSION["error"] = "All fields are required";
-    header("Location: /rental-management/src/views/auth/register.view.php");
+
+  if (empty($email)) $errors[] = "Email is required";
+  if (empty($password)) $errors[] = "Password is required";
+
+  if (!empty($errors)) {
+    echo json_encode(["success" => false, "error" => implode("<br>", $errors)]);
     exit();
   }
 
@@ -30,8 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
   try {
     $insertResult = $usersCollection->insertOne($userData);
-    echo ("User registered successful (" . $insertResult->getInsertedId() . ")");
+    echo json_encode(["success" => true, "userId" => (string)$insertResult->getInsertedId()]);  
   } catch (Exception $err) {
-    die("Error registration: " . $err->getMessage());
+    echo json_encode(["success" => false, "error" => "Error registration: " . $err->getMessage()]);
   }
 }
