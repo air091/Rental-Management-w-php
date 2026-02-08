@@ -4,9 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const errMessage = document.createElement("p");
-    errMessage.classList = "err__message";
-    errContainer.innerHTML = "";
+    errContainer.textContent = "";
 
     try {
       const response = await fetch(
@@ -21,8 +19,13 @@ document.addEventListener("DOMContentLoaded", () => {
         console.log(results.message);
         form.reset();
       } else {
-        errMessage.innerHTML = results.error;
-        errContainer.prepend(errMessage);
+        const strArr = results.error.split(", ");
+        strArr.forEach((error) => {
+          const errMessage = document.createElement("p");
+          errMessage.classList = "err__message";
+          errMessage.textContent = error;
+          errContainer.appendChild(errMessage);
+        });
       }
     } catch (error) {
       console.error("Login failed:", error);

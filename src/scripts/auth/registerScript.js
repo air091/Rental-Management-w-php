@@ -3,10 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const errContainer = document.getElementById("error-container");
 
   form.addEventListener("submit", async (e) => {
-    const errMsg = document.createElement("p");
-    errMsg.classList = "err__message";
     e.preventDefault();
-    errContainer.innerHTML = "";
+    errContainer.textContent = "";
     try {
       const response = await fetch(
         "/rental-management/src/services/auth/register.service.php",
@@ -19,8 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (results.success) {
         form.reset();
       } else {
-        errMsg.innerHTML = results.error;
-        errContainer.prepend(errMsg);
+        const strArr = results.error.split(", ");
+        strArr.forEach((error) => {
+          const errMessage = document.createElement("p");
+          errMessage.classList = "err__message";
+          errMessage.textContent = error;
+          errContainer.appendChild(errMessage);
+        });
       }
     } catch (error) {
       console.error("Register failed Script:", error);
