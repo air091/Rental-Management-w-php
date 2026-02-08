@@ -4,21 +4,17 @@ require realpath(__DIR__ . "/../../config/database.php");
 
 use MongoDB\BSON\UTCDateTime;
 
-session_start();
-
-// STATUS
-$errors = [];
-unset($_SESSION["error"]);
+header("Content-Type: application/json");
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
   $database = MongoDBConnection::getDB();
   $usersCollection = $database->users;
 
   // CREDENTIALS
-  $email = (string) $_REQUEST["email"] ?? "";
-  $password = (string) $_REQUEST["password"] ?? "";
+  $email = isset($_POST["email"]) ? trim($_POST["email"]) : "";
+  $password = isset($_POST["password"]) ? trim($_POST["password"]) : "";
 
-
+  $errors = [];
   if (empty($email)) $errors[] = "Email is required";
   if (empty($password)) $errors[] = "Password is required";
 
