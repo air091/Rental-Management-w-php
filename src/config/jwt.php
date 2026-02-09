@@ -1,6 +1,6 @@
 <?php
 return [
-  "secret" => "mwCMfXF39tK1KBT+25/PkHSUrhoUKnWEcZ+UYiUs3EI=",
+  "secret" => "KX7aDrTQiB854pW1CAMmNd3B8JD2jvH2NxExUIBnOZw=",
   "issuer" => "rental-management",
-  "expire" => 120 // 2mins
+  "expire" => 120
 ];
