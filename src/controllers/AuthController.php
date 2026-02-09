@@ -8,10 +8,11 @@ class AuthController
 {
   public static function login()
   {
-    $input = json_decode(file_get_contents("php://input"), true);
+    $input = json_decode(file_get_contents("php://input"), true); // to get data
+    // create credentials
     $email = isset($input["email"]) ? trim($input["email"]) : "";
     $password = isset($input["password"]) ? trim($input["password"]) : "";
-
+    // validates if there are credentials
     if (empty($email) || empty($password)) {
       echo json_encode([
         "success" => false,
@@ -19,6 +20,7 @@ class AuthController
       ]);
       return;
     }
+
     try {
       $user = User::findUserByEmail($email);
       if (!$user || !password_verify($password, $user["password"])) {
@@ -37,6 +39,7 @@ class AuthController
         "sub" => (string) $user["_id"],
         "role" => $user["role"] ?? "user",
       ];
+
       $token = JWT::encode($payload, $config["secret"], "HS256");
       echo json_encode([
         "success" => true,
@@ -50,6 +53,7 @@ class AuthController
   public static function register()
   {
     $input = json_decode(file_get_contents("php://input"), true);
+
     $email = isset($input["email"]) ? trim($input["email"]) : "";
     $password = isset($input["password"]) ? trim($input["password"]) : "";
 
@@ -83,13 +87,13 @@ class AuthController
         "role" => "user",
       ]);
 
-      // get inserted user by id
+      // get inserted user by id after user created
       $userId = (string) $user->getInsertedId();
 
-      // create token
+      // declare jwt.php to get jwt properties for generating token
       $config = require __DIR__ . "/../config/jwt.php";
 
-      // add payload
+      // add payload for token
       $payload = [
         "iss" => $config["issuer"],
         "iat" => time(),

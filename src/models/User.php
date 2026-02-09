@@ -5,7 +5,9 @@ class User
 {
   public static function findUserById($id)
   {
+    // connect the database
     $database = MongoDBConnection::getDB();
+    // what it will do
     return $database->users->findOne(["_id" => $id]);
   }
 
