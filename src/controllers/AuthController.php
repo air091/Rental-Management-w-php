@@ -1,25 +1,28 @@
 <?php
-require_once realpath(__DIR__ . "/../models/User.php");
+require_once realpath(__DIR__ . "/../helpers/Validator.php");
+require_once realpath(__DIR__ . "/../models/User.php"); // import User.php for interaction of database base on function
 require_once realpath(__DIR__ . "/../../vendor/autoload.php");
 
-use Firebase\JWT\JWT;
+use Firebase\JWT\JWT; // for JWT
 
 class AuthController
 {
   public static function login()
   {
     $input = json_decode(file_get_contents("php://input"), true); // to get data
+
+    Validator::required($input, ["email", "password"]);
     // create credentials
     $email = isset($input["email"]) ? trim($input["email"]) : "";
     $password = isset($input["password"]) ? trim($input["password"]) : "";
     // validates if there are credentials
-    if (empty($email) || empty($password)) {
-      echo json_encode([
-        "success" => false,
-        "error" => "All fields are required",
-      ]);
-      return;
-    }
+    // if (empty($email) || empty($password)) {
+    //   echo json_encode([
+    //     "success" => false,
+    //     "error" => "All fields are required",
+    //   ]);
+    //   return;
+    // }
 
     try {
       $user = User::findUserByEmail($email);
@@ -39,7 +42,6 @@ class AuthController
         "sub" => (string) $user["_id"],
         "role" => $user["role"] ?? "user",
       ];
-
       $token = JWT::encode($payload, $config["secret"], "HS256");
       echo json_encode([
         "success" => true,
@@ -53,6 +55,8 @@ class AuthController
   public static function register()
   {
     $input = json_decode(file_get_contents("php://input"), true);
+
+    Validator::required($input, ["email", "password"]);
 
     $email = isset($input["email"]) ? trim($input["email"]) : "";
     $password = isset($input["password"]) ? trim($input["password"]) : "";
@@ -87,13 +91,13 @@ class AuthController
         "role" => "user",
       ]);
 
-      // get inserted user by id after user created
+      // get inserted user by id
       $userId = (string) $user->getInsertedId();
 
-      // declare jwt.php to get jwt properties for generating token
+      // create token
       $config = require __DIR__ . "/../config/jwt.php";
 
-      // add payload for token
+      // add payload
       $payload = [
         "iss" => $config["issuer"],
         "iat" => time(),
