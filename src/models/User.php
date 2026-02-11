@@ -1,31 +1,37 @@
 <?php
-require_once realpath(__DIR__ . "/../config/database.php");
+require_once realpath(__DIR__ . "/../configs/AuthDatabase.php");
 
 class User
 {
-  public static function findUserById($id)
+  public static function getUserByEmail(string $email)
   {
-    // connect the database
-    $database = MongoDBConnection::getDB();
-    // what it will do
-    return $database->users->findOne(["_id" => $id]);
+    try {
+      $pdo = AuthDatabase::connectAuthDB();
+      $statement = $pdo->prepare("SELECT * FROM accounts WHERE email = :email LIMIT 1");
+      $statement->execute(["email" => $email]);
+      $user = $statement->fetch(PDO::FETCH_ASSOC);
+      return $user ?? null;
+    } catch (PDOException $err) {
+      echo json_encode([
+        "success" => false,
+        "message" => $err->getMessage()
+      ]);
+      exit();
+    }
   }
 
-  public static function findUserByEmail($email)
-  {
-    $database = MongoDBConnection::getDB();
-    return $database->users->findOne(["email" => $email]);
-  }
-
-  public static function createUser(array $data)
-  {
-    $database = MongoDBConnection::getDB();
-    return $database->users->insertOne($data);
-  }
-
-  public static function deleteUser($id)
-  {
-    $database = MongoDBConnection::getDB();
-    return $database->users->deleteOne(["_id" => $id]);
+  public static function insertUser(string $email, string $password) {
+    try {
+      $pdo = AuthDatabase::connectAuthDB();
+      $statement = $pdo->prepare("INSERT INTO accounts (email, password) VALUES (:email, :password)");
+      $statement->execute(["email" => $email, "password" => $password]);
+      return (int)$pdo->lastInsertId();
+    } catch (PDOException $err) {
+      echo json_encode([
+        "success" => false,
+        "message" => $err->getMessage()
+      ]);
+      exit();
+    }
   }
 }

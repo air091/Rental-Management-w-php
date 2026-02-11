@@ -1,120 +1,130 @@
 <?php
-require_once realpath(__DIR__ . "/../helpers/Validator.php");
-require_once realpath(__DIR__ . "/../models/User.php"); // import User.php for interaction of database base on function
 require_once realpath(__DIR__ . "/../../vendor/autoload.php");
+require_once realpath(__DIR__ . "/../models/User.php");
 
-use Firebase\JWT\JWT; // for JWT
+use Firebase\JWT\JWT;
 
 class AuthController
 {
+
   public static function login()
   {
-    $input = json_decode(file_get_contents("php://input"), true); // to get data
-
-    Validator::required($input, ["email", "password"]);
-    // create credentials
-    $email = isset($input["email"]) ? trim($input["email"]) : "";
-    $password = isset($input["password"]) ? trim($input["password"]) : "";
-    // validates if there are credentials
-    // if (empty($email) || empty($password)) {
-    //   echo json_encode([
-    //     "success" => false,
-    //     "error" => "All fields are required",
-    //   ]);
-    //   return;
-    // }
-
     try {
-      $user = User::findUserByEmail($email);
-      if (!$user || !password_verify($password, $user["password"])) {
+      $input = json_decode(file_get_contents("php://input"), true);
+
+      $email = isset($input["email"]) ? trim($input["email"]) : "";
+      $password = isset($input["password"]) ? trim($input["password"]) : "";
+
+      if (empty($email) || empty($password)) {
+        http_response_code(400);
         echo json_encode([
           "success" => false,
-          "error" => "Invalid email or password",
+          "message" => "All fields are required"
         ]);
         return;
       }
 
-      $config = require __DIR__ . "/../config/jwt.php";
+      $user = User::getUserByEmail($email);
+      if (!$user || !password_verify($password, $user["password"])) {
+        http_response_code(401);
+        echo json_encode([
+          "success" => false,
+          "message" => "Invalid email or password"
+        ]);
+        return;
+      }
+
+      $jwtConfig = require (__DIR__ . "/../configs/jwt.php");
       $payload = [
-        "iss" => $config["issuer"],
+        "iss" => $jwtConfig["issuer"],
         "iat" => time(),
-        "exp" => time() + $config["expire"],
-        "sub" => (string) $user["_id"],
-        "role" => $user["role"] ?? "user",
+        "exp" => time() + $jwtConfig["expires"],
+        "sub" => $user["user_id"],
+        "email" => $user["email"]
       ];
-      $token = JWT::encode($payload, $config["secret"], "HS256");
+
+      $token = JWT::encode($payload, $jwtConfig["secret"], "HS256");
+
+      setcookie(
+        "token",
+        $token,
+        [
+          "expires" => time() + 60,
+          "path" => "/",
+          "secure" => false,
+          "httponly" => true,
+          "samesite" => "Strict"
+        ]
+      );
+
       echo json_encode([
         "success" => true,
-        "token" => $token,
+        "message" => "Login successful",
+        "user" => [
+          "userId" => $user["user_id"],
+          "email" => $user["email"]
+        ]
       ]);
-    } catch (Exception $e) {
-      die("Login failed: " . $e->getMessage());
+
+    } catch (PDOException $err) {
+      http_response_code(500);
+      echo json_encode([
+        "success" => false,
+        "message" => "Something went wrong Login Cont: " . $err->getMessage()
+      ]);
+      exit();
     }
+  }
+
+  public static function me() {
+    echo json_encode([
+      "success" => true,
+      "user" => $_SERVER["user_auth"]
+    ]);
+    return;
   }
 
   public static function register()
   {
-    $input = json_decode(file_get_contents("php://input"), true);
-
-    Validator::required($input, ["email", "password"]);
-
-    $email = isset($input["email"]) ? trim($input["email"]) : "";
-    $password = isset($input["password"]) ? trim($input["password"]) : "";
-
-    // validate
-    if (empty($email) || empty($password)) {
-      echo json_encode([
-        "success" => false,
-        "error" => "All fields are required",
-      ]);
-      return;
-    }
-
     try {
-      // check if user exist
-      $existingUser = User::findUserByEmail($email);
-      if (isset($existingUser)) {
+      $input = json_decode(file_get_contents("php://input"), true);
+
+      $email = isset($input["email"]) ? trim($input["email"]) : "";
+      $password = isset($input["password"]) ? trim($input["password"]) : "";
+
+      if (empty($email) || empty($password)) {
+        http_response_code(400);
         echo json_encode([
           "success" => false,
-          "error" => "Email is already registered",
+          "message" => "All fields are required"
         ]);
         return;
       }
 
-      // hash password
+      $userExist = User::getUserByEmail($email);
+      if (!empty($userExist)) {
+        http_response_code(409);
+        echo json_encode([
+          "success" => false,
+          "message" => "Email already in use"
+        ]);
+        return;
+      }
       $passwordHash = password_hash($password, PASSWORD_DEFAULT);
-
-      // insert to database
-      $user = User::createUser([
-        "email" => $email,
-        "password" => $passwordHash,
-        "role" => "user",
-      ]);
-
-      // get inserted user by id
-      $userId = (string) $user->getInsertedId();
-
-      // create token
-      $config = require __DIR__ . "/../config/jwt.php";
-
-      // add payload
-      $payload = [
-        "iss" => $config["issuer"],
-        "iat" => time(),
-        "exp" => time() + $config["expire"],
-        "sub" => $userId,
-        "role" => "user",
-      ];
-
-      // create token (payload, secret, algorithm)
-      $token = JWT::encode($payload, $config["secret"], "HS256");
-      // returning it
+      $user = User::insertUser($email, $passwordHash);
       echo json_encode([
         "success" => true,
-        "token" => $token,
+        "message" => "Registered Successful",
+        "user_id" => $user
       ]);
-    } catch (Exception $e) {
-      die("Register failed: " . $e->getMessage());
+    } catch (PDOException $err) {
+      http_response_code(500);
+      echo json_encode([
+        "success" => false,
+        "message" => "Something went wrong Register Cont: " . $err->getMessage()
+      ]);
+      exit();
     }
   }
+
 }

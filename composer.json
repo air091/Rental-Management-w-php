@@ -1,18 +1,12 @@
 {
-    "name": "acesp/rental-management",
-    "autoload": {
-        "psr-4": {
-            "Acesp\\RentalManagement\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "Ace",
-            "email": "acesparkle243@gmail.com"
-        }
-    ],
-    "require": {
-        "firebase/php-jwt": "^7.0",
-        "mongodb/mongodb": "^2.1"
+  "name": "acesp/rental-management",
+  "authors": [
+    {
+      "name": "Ace",
+      "email": "acesparkle243@gmail.com"
     }
+  ],
+  "require": {
+    "firebase/php-jwt": "^7.0"
+  }
 }
