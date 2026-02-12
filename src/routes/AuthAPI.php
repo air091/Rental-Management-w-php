@@ -26,28 +26,22 @@ if ($URI === "/" && $method === "GET") {
     "success" => true,
     "message" => "youre in a homepage"
   ]);
-  return;
+  exit();
 }
 
 if ($URI === "/api/auth/login" && $method === "POST") {
   AuthController::login();
-  return;
+  exit();
 }
 
 if ($URI === "/api/auth/register" && $method === "POST") {
   AuthController::register();
-  return;
+  exit();
 }
 
 if ($URI === "/api/auth/me" && $method === "GET") {
   AuthMiddleware::verify();
   AuthController::me();
-  return;
+  exit();
 }
 
-// 404 routes
-http_response_code(404);
-echo json_encode([
-  "success" => false,
-  "message" => "Route not found"
-]);

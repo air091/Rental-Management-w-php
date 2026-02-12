@@ -3,6 +3,22 @@ require_once realpath(__DIR__ . "/../configs/AuthDatabase.php");
 
 class User
 {
+  public static function getAllUsers() {
+    try {
+      $pdo = AuthDatabase::connectAuthDB();
+      $statement = $pdo->prepare("SELECT * FROM accounts");
+      $statement->execute();
+      $users = $statement->fetchAll(PDO::FETCH_ASSOC);
+      return $users ?? [];
+    } catch (PDOException $err) {
+      echo json_encode([
+        "success" => false,
+        "message" => $err->getMessage()
+      ]);
+      exit();
+    }
+  }
+
   public static function getUserByEmail(string $email)
   {
     try {
